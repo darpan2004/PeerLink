@@ -1,18 +1,32 @@
 package p2p.service;
 
+import org.springframework.stereotype.Service;
 import p2p.utils.UploadUtils;
 
 import java.io.*;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.HashMap;
+import java.util.Map;
 
+@Service
 public class FileSharer {
 
     private HashMap<Integer, String> availableFiles;
+    private HashMap<Integer, PeerInfo> peerRegistry;
+
+    public static class PeerInfo {
+        public String ip;
+        public int port;
+        public PeerInfo(String ip, int port) {
+            this.ip = ip;
+            this.port = port;
+        }
+    }
 
     public FileSharer() {
         availableFiles = new HashMap<>();
+        peerRegistry = new HashMap<>();
     }
 
     public int offerFile(String filePath) {
@@ -43,6 +57,18 @@ public class FileSharer {
         } catch (IOException e) {
             System.err.println("Error starting file server on port " + port + ": " + e.getMessage());
         }
+    }
+
+    public String getFilePath(int code) {
+        return availableFiles.get(code);
+    }
+
+    public void registerPeer(int code, String ip, int port) {
+        peerRegistry.put(code, new PeerInfo(ip, port));
+    }
+
+    public PeerInfo getPeerInfo(int code) {
+        return peerRegistry.get(code);
     }
 
     private static class FileSenderHandler implements Runnable {
